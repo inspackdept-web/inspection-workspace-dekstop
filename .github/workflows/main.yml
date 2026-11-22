@@ -29,6 +29,9 @@ jobs:
           if ($json.build.PSObject.Properties['publish']) {
             $json.build.PSObject.Properties.Remove('publish')
           }
+          if ($json.build.win -and $json.build.win.PSObject.Properties['artifactName']) {
+            $json.build.win.PSObject.Properties.Remove('artifactName')
+          }
           $json | ConvertTo-Json -Depth 10 | Set-Content "package.json" -Encoding UTF8
           npm install
           npx electron-builder --win nsis portable --x64 --publish never
