@@ -8,9 +8,6 @@ on:
 jobs:
   build-windows-exe:
     runs-on: windows-latest
-    defaults:
-      run:
-        working-directory: inspection-workspace-desktop
 
     steps:
       - name: Checkout repository
@@ -21,15 +18,19 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build Windows Installer & Portable EXE
-        run: npx electron-builder --win --x64 --publish never
+      - name: Install & Build Windows EXE
+        shell: pwsh
+        run: |
+          $pkg = Get-ChildItem -Recurse -Filter "package.json" | Select-Object -First 1
+          if (-not $pkg) { throw "package.json tidak ditemukan!" }
+          Set-Location $pkg.Directory.FullName
+          Write-Host "Building di folder: $($pkg.Directory.FullName)"
+          npm install
+          npx electron-builder --win nsis portable --x64 --publish never -c.publish=null
 
       - name: Upload EXE to GitHub Actions Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Inspection-Workspace-Windows-EXE
           path: |
-            inspection-workspace-desktop/dist/*.exe
+            **/dist/*.exe
