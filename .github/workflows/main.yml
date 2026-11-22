@@ -25,8 +25,13 @@ jobs:
           if (-not $pkg) { throw "package.json tidak ditemukan!" }
           Set-Location $pkg.Directory.FullName
           Write-Host "Building di folder: $($pkg.Directory.FullName)"
+          $json = Get-Content "package.json" -Raw | ConvertFrom-Json
+          if ($json.build.PSObject.Properties['publish']) {
+            $json.build.PSObject.Properties.Remove('publish')
+          }
+          $json | ConvertTo-Json -Depth 10 | Set-Content "package.json" -Encoding UTF8
           npm install
-          npx electron-builder --win nsis portable --x64 --publish never -c.publish=null
+          npx electron-builder --win nsis portable --x64 --publish never
 
       - name: Upload EXE to GitHub Actions Artifacts
         uses: actions/upload-artifact@v4
